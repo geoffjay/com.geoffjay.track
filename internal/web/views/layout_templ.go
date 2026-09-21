@@ -14,8 +14,10 @@ import (
 	"github.com/geoffjay/jughead/templates/components/daisyui"
 	"github.com/geoffjay/jughead/templates/containers"
 	"github.com/geoffjay/templ-charts/charts/interact"
+	"github.com/iota-uz/icons/phosphor"
 )
 
+// Page carries the signed-in username and a one-shot flash message.
 type Page struct {
 	User  string
 	Flash *Flash
@@ -68,8 +70,9 @@ func head() templ.Component {
 }
 
 // base renders the full HTML document around content via jughead's AppShell.
-// The sidebar starts closed so mobile is the default layout; the navbar
-// toggle re-opens it on desktop.
+// The navbar holds only the brand and theme toggle; nav links live in the
+// sidebar (hamburger) and the mobile dock, so the navbar never wraps on a
+// 390px screen.
 func base(title string, p Page, content templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -98,7 +101,7 @@ func base(title string, p Page, content templ.Component) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/views/layout.templ`, Line: 41, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/views/layout.templ`, Line: 45, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -124,11 +127,15 @@ func base(title string, p Page, content templ.Component) templ.Component {
 				DarkTheme:  "dark",
 				StorageKey: "track-theme",
 			},
-			Content:  content,
-			NavItems: []daisyui.NavItem{{Label: p.User, Href: "#"}, {Label: "Sign out", Href: "/logout"}},
+			Content: content,
 			MenuItems: []daisyui.MenuItem{
 				{Label: "Dashboard", Href: "/", Active: title == "Dashboard"},
 				{Label: "History", Href: "/history", Active: title == "History"},
+			},
+			NavSections: []containers.NavSection{
+				{Title: p.User, Items: []daisyui.MenuItem{
+					{Label: "Sign out", Href: "/logout"},
+				}},
 			},
 			SidebarState: containers.SidebarClosed,
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -203,9 +210,9 @@ func dock(active string) templ.Component {
 		}
 		templ_7745c5c3_Err = daisyui.Dock(daisyui.DockConfig{
 			Items: []daisyui.DockItem{
-				{Label: "Home", Href: "/", Active: active == "Dashboard"},
-				{Label: "Log", Href: "/checkin", Active: active == "Check in"},
-				{Label: "History", Href: "/history", Active: active == "History"},
+				{Label: "Home", Href: "/", Active: active == "Dashboard", Icon: phosphor.House(phosphor.Props{Size: "22"})},
+				{Label: "Log", Href: "/checkin", Active: active == "Check in", Icon: phosphor.Plus(phosphor.Props{Size: "22"})},
+				{Label: "History", Href: "/history", Active: active == "History", Icon: phosphor.ChartLineUp(phosphor.Props{Size: "22"})},
 			},
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

@@ -102,7 +102,7 @@ func (s *Server) dashboard(c *gin.Context) {
 		s.serverError(c, err)
 		return
 	}
-	chart, err := views.BuildChartView(series, weeklyFrom(series), Users)
+	chart, err := views.BuildChartView(series, weeklyFrom(series, Users), Users)
 	if err != nil {
 		s.serverError(c, err)
 		return
@@ -169,28 +169,34 @@ func (s *Server) history(c *gin.Context) {
 	render(c, http.StatusOK, views.History(page(c), checkins))
 }
 
-// weeklyFrom reshapes the daily series into day-label -> user -> miles for
-// the last 7 days.
-func weeklyFrom(series map[string][]track.LinePoint) map[string]map[string]float64 {
-	weekly := map[string]map[string]float64{}
-	for user, pts := range series {
-		for i, p := range pts {
-			if i < len(pts)-7 {
+// weeklyFrom reshapes the daily series into an ordered list of the last 7
+// days, each carrying that day's (not cumulative) miles per user. Ordered
+// output keeps the bar chart's x axis chronological instead of map-random.
+func weeklyFrom(series map[string][]track.LinePoint, users []string) []views.WeekDay {
+	var out []views.WeekDay
+	anyPts := series[users[0]]
+	if len(anyPts) == 0 {
+		return out
+	}
+	for i := len(anyPts) - 7; i < len(anyPts); i++ {
+		if i < 0 {
+			continue
+		}
+		day := views.WeekDay{Label: anyPts[i].Day.Format("Mon"), Miles: map[string]float64{}}
+		for _, u := range users {
+			pts := series[u]
+			if i >= len(pts) {
 				continue
 			}
-			day := p.Day.Format("Mon 2")
-			if weekly[day] == nil {
-				weekly[day] = map[string]float64{}
-			}
-			// Subtract to get that day's (not cumulative) miles.
 			prev := 0.0
 			if i > 0 {
 				prev = pts[i-1].Miles
 			}
-			weekly[day][user] = p.Miles - prev
+			day.Miles[u] = pts[i].Miles - prev
 		}
+		out = append(out, day)
 	}
-	return weekly
+	return out
 }
 
 // redirect sends a flash message through the query string (simple PRG

@@ -4,7 +4,10 @@ import (
 	"github.com/geoffjay/jughead/templates/components/daisyui"
 	"github.com/geoffjay/jughead/templates/containers"
 	"github.com/geoffjay/templ-charts/charts/interact"
+	"github.com/iota-uz/icons/phosphor"
 )
+
+// Page carries the signed-in username and a one-shot flash message.
 type Page struct {
 	User  string
 	Flash *Flash
@@ -32,8 +35,9 @@ templ head() {
 }
 
 // base renders the full HTML document around content via jughead's AppShell.
-// The sidebar starts closed so mobile is the default layout; the navbar
-// toggle re-opens it on desktop.
+// The navbar holds only the brand and theme toggle; nav links live in the
+// sidebar (hamburger) and the mobile dock, so the navbar never wraps on a
+// 390px screen.
 templ base(title string, p Page, content templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="light">
@@ -51,10 +55,14 @@ templ base(title string, p Page, content templ.Component) {
 					StorageKey: "track-theme",
 				},
 				Content: content,
-				NavItems: []daisyui.NavItem{ {Label: p.User, Href: "#"}, {Label: "Sign out", Href: "/logout"} },
 				MenuItems: []daisyui.MenuItem{
 					{Label: "Dashboard", Href: "/", Active: title == "Dashboard"},
 					{Label: "History", Href: "/history", Active: title == "History"},
+				},
+				NavSections: []containers.NavSection{
+					{Title: p.User, Items: []daisyui.MenuItem{
+						{Label: "Sign out", Href: "/logout"},
+					}},
 				},
 				SidebarState: containers.SidebarClosed,
 			})
@@ -74,9 +82,9 @@ templ dock(active string) {
 	<div class="md:hidden sticky bottom-0 z-50">
 		@daisyui.Dock(daisyui.DockConfig{
 			Items: []daisyui.DockItem{
-				{Label: "Home", Href: "/", Active: active == "Dashboard"},
-				{Label: "Log", Href: "/checkin", Active: active == "Check in"},
-				{Label: "History", Href: "/history", Active: active == "History"},
+				{Label: "Home", Href: "/", Active: active == "Dashboard", Icon: phosphor.House(phosphor.Props{Size: "22"})},
+				{Label: "Log", Href: "/checkin", Active: active == "Check in", Icon: phosphor.Plus(phosphor.Props{Size: "22"})},
+				{Label: "History", Href: "/history", Active: active == "History", Icon: phosphor.ChartLineUp(phosphor.Props{Size: "22"})},
 			},
 		})
 	</div>

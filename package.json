@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "tailwindcss -i ./assets/styles.css -o ./internal/web/styles.css --minify"
+    "build": "./scripts/build-css.sh"
   },
   "dependencies": {
     "tailwindcss": "4.3.1",

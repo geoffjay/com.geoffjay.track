@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+
+/* Rowing Miles custom styles */
+
+:root {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* The sticky dock sits inside the scrollable AppShell main region; give the
+   page content bottom padding so the last row clears it (pb-24 on pages). */
+
+/* Chart containers: let responsive SVGs scale to card width. */
+.card-body svg {
+  max-width: 100%;
+  height: auto;
+}

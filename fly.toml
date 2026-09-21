@@ -1,0 +1,29 @@
+# fly.io app configuration for the rowing-miles tracker.
+# Deploy: fly deploy --env-file=.env  (or set secrets via `fly secrets set`)
+
+app = 'rowing-miles'
+primary_region = 'ord'
+
+[build]
+
+[env]
+  TRACK_ENV = 'production'
+  TRACK_DB_PATH = '/data/track.db'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Auto-stop the idle machine; the next request cold-starts it (~1-2s).
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[mounts]
+  source = 'track_data'
+  destination = '/data'

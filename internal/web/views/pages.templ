@@ -1,0 +1,247 @@
+package views
+
+import (
+	"fmt"
+	"time"
+
+	"com.geoffjay.track/internal/track"
+
+	"github.com/geoffjay/jughead/templates/components/daisyui"
+)
+
+// fmtMiles renders miles with up to one decimal, trailing zeros trimmed.
+func fmtMiles(m float64) string {
+	s := fmt.Sprintf("%.1f", m)
+	return s
+}
+
+// fmtDay renders a short date label.
+func fmtDay(t time.Time) string { return t.Format("Jan 2") }
+
+// fmtDateTime renders "Jan 2, 3:04pm".
+func fmtDateTime(t time.Time) string { return t.Format("Jan 2, 3:04pm") }
+
+// Dashboard is the main page: scoreboard, quick check-in, charts, recent.
+templ Dashboard(p Page, tot []track.Totals, recent []track.CheckIn, chart ChartView, users []string) {
+	@base("Dashboard", p, dashboardContent(p, tot, recent, chart, users))
+}
+
+// dashboardContent is the Dashboard body; split so the base document wraps it.
+templ dashboardContent(p Page, tot []track.Totals, recent []track.CheckIn, chart ChartView, users []string) {
+	<div class="p-4 max-w-2xl mx-auto pb-24">
+		@flash(p)
+		<div class="flex items-center justify-between mb-4">
+			<h1 class="text-2xl font-bold">Scoreboard</h1>
+		</div>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			for i, t := range tot {
+				@daisyui.Card(daisyui.CardConfig{
+					Class: fmt.Sprintf("bg-base-100 shadow-sm %s", leading(i)),
+					Body: userCard(t, i),
+				})
+			}
+		</div>
+		<div class="mt-6">
+			@quickCheckin(p)
+		</div>
+		<div class="mt-6">
+			<h2 class="text-lg font-semibold mb-2">Progress</h2>
+			<div class="card bg-base-100 shadow-sm">
+				<div class="card-body p-4">
+					@templ.Raw(chart.ProgressSVG)
+				</div>
+			</div>
+		</div>
+		<div class="mt-6">
+			<h2 class="text-lg font-semibold mb-2">This week</h2>
+			<div class="card bg-base-100 shadow-sm">
+				<div class="card-body p-4">
+					@templ.Raw(chart.WeekSVG)
+				</div>
+			</div>
+		</div>
+		<div class="mt-6">
+			<h2 class="text-lg font-semibold mb-2">Recent activity</h2>
+			<div class="card bg-base-100 shadow-sm">
+				<div class="card-body p-4">
+					@daisyui.Table(daisyui.TableConfig{
+						Headers: []daisyui.TableCell{{Text: "When"}, {Text: "Who"}, {Text: "Miles"}},
+						Rows: recentRows(recent, 5),
+						Size: "sm",
+					})
+				</div>
+			</div>
+		</div>
+		@dock("Dashboard")
+	</div>
+}
+
+// leading returns a subtle highlight for the current leader.
+func leading(i int) string {
+	if i == 0 && len([]string{}) >= 0 {
+		return "border-primary"
+	}
+	return "border-base-300"
+}
+
+// userCard builds a scoreboard card body via the daisyui Stat component.
+templ userCard(t track.Totals, i int) {
+	<div class="flex flex-col gap-2">
+		<div class="flex items-center gap-2">
+			<span class="text-lg font-bold capitalize">{ t.Username }</span>
+			if i == 0 && t.CheckIns > 0 {
+				@daisyui.Badge(daisyui.BadgeConfig{Text: "Leading", Color: "primary", Size: "sm"})
+			}
+		</div>
+		@daisyui.Stat(daisyui.StatConfig{
+			Items: []daisyui.StatItem{
+				{Title: "Total miles", Value: fmtMiles(t.Miles)},
+				{Title: "Check-ins", Value: fmt.Sprint(t.CheckIns)},
+			},
+			Class: "bg-transparent",
+		})
+		<div class="stat-desc">
+			{ lastSeen(t) }
+		</div>
+	</div>
+}
+
+// lastSeen renders the "last row" caption for a totals row.
+func lastSeen(t track.Totals) string {
+	if !t.Has {
+		return "No miles yet"
+	}
+	return "Last: " + fmtDay(t.LastAt)
+}
+
+// quickCheckin is the always-visible check-in form.
+templ quickCheckin(p Page) {
+	<div class="card bg-base-100 shadow-sm">
+		<div class="card-body p-4 gap-3">
+			<h2 class="card-title text-lg">Quick check-in</h2>
+			<form method="POST" action="/checkin" class="flex flex-col gap-3">
+				<label class="form-control">
+					<div class="label"><span class="label-text">Miles rowed</span></div>
+					<input
+						type="number"
+						name="miles"
+						placeholder="e.g. 2.5"
+						step="0.1"
+						min="0.1"
+						required
+						class="input input-bordered w-full"
+					/>
+				</label>
+				<label class="form-control">
+					<div class="label"><span class="label-text">When</span></div>
+					@daisyui.Input(daisyui.InputConfig{
+						Type: "datetime-local", Name: "rowed_at",
+						Value: time.Now().Format("2006-01-02T15:04"),
+						Class: "w-full",
+					})
+				</label>
+				@daisyui.Button(daisyui.ButtonConfig{Label: "Log miles", Color: "primary", Type: "submit", Class: "w-full"})
+			</form>
+		</div>
+	</div>
+}
+
+// recentRows builds table rows for the recent activity list.
+func recentRows(recent []track.CheckIn, max int) []daisyui.TableRow {
+	rows := make([]daisyui.TableRow, 0, len(recent))
+	for i, c := range recent {
+		if i >= max {
+			break
+		}
+		rows = append(rows, daisyui.TableRow{Cells: []daisyui.TableCell{
+			{Text: fmtDateTime(c.RowedAt)},
+			{Text: c.Username},
+			{Text: fmtMiles(c.Miles)},
+		}})
+	}
+	if len(rows) == 0 {
+		rows = append(rows, daisyui.TableRow{Cells: []daisyui.TableCell{
+			{Text: "No check-ins yet"}, {Text: ""}, {Text: ""},
+		}})
+	}
+	return rows
+}
+
+// History lists every check-in with delete buttons for own rows.
+templ History(p Page, checkins []track.CheckIn) {
+	@base("History", p, historyContent(p, checkins))
+}
+
+templ historyContent(p Page, checkins []track.CheckIn) {
+	<div class="p-4 max-w-2xl mx-auto pb-24">
+		@flash(p)
+		<h1 class="text-2xl font-bold mb-4">History</h1>
+		<div class="card bg-base-100 shadow-sm">
+			<div class="card-body p-4">
+				@daisyui.Table(daisyui.TableConfig{
+					Headers: []daisyui.TableCell{{Text: "When"}, {Text: "Who"}, {Text: "Miles"}, {Text: ""}},
+					Rows:    historyRows(checkins, p.User),
+					Size:   "sm",
+					Wrap:   true,
+				})
+			</div>
+		</div>
+		@dock("History")
+	</div>
+}
+
+// historyRows builds table rows; own rows carry a delete form button.
+func historyRows(checkins []track.CheckIn, user string) []daisyui.TableRow {
+	rows := make([]daisyui.TableRow, 0, len(checkins))
+	for _, c := range checkins {
+		cells := []daisyui.TableCell{
+			{Text: fmtDateTime(c.RowedAt)},
+			{Text: c.Username},
+			{Text: fmtMiles(c.Miles)},
+		}
+		if c.Username == user {
+			cells = append(cells, daisyui.TableCell{HTML: deleteButton(c.ID)})
+		} else {
+			cells = append(cells, daisyui.TableCell{Text: ""})
+		}
+		rows = append(rows, daisyui.TableRow{Cells: cells})
+	}
+	return rows
+}
+
+// deleteButton renders the inline delete form for one check-in.
+templ deleteButton(id int64) {
+	<form method="POST" action={ templ.URL(fmt.Sprintf("/checkins/%d/delete", id)) } class="inline">
+		@daisyui.Button(daisyui.ButtonConfig{
+			Label: "Delete", Style: "ghost", Color: "error", Size: "xs", Type: "submit",
+		})
+	</form>
+}
+
+// CheckIn is the standalone check-in page (mobile-friendly big form).
+templ CheckIn(p Page) {
+	@base("Check in", p, checkinPageContent(p))
+}
+
+templ checkinPageContent(p Page) {
+	<div class="p-4 max-w-2xl mx-auto pb-24">
+		@flash(p)
+		<h1 class="text-2xl font-bold mb-4">Check in</h1>
+		<div class="card bg-base-100 shadow-sm">
+			<div class="card-body p-4">
+				<form method="POST" action="/checkin" class="flex flex-col gap-3">
+					<label class="form-control">
+						<div class="label"><span class="label-text">Miles rowed</span></div>
+						<input type="number" name="miles" placeholder="e.g. 2.5" step="0.1" min="0.1" required class="input input-bordered w-full"/>
+					</label>
+					<label class="form-control">
+						<div class="label"><span class="label-text">When</span></div>
+						<input type="datetime-local" name="rowed_at" class="input input-bordered w-full"/>
+					</label>
+					@daisyui.Button(daisyui.ButtonConfig{Label: "Log miles", Color: "primary", Type: "submit", Class: "w-full"})
+				</form>
+			</div>
+		</div>
+		@dock("Check in")
+	</div>
+}

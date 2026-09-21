@@ -1,0 +1,83 @@
+// Package views holds the templ UI: the base layout plus page templates.
+package views
+import (
+	"github.com/geoffjay/jughead/templates/components/daisyui"
+	"github.com/geoffjay/jughead/templates/containers"
+	"github.com/geoffjay/templ-charts/charts/interact"
+)
+type Page struct {
+	User  string
+	Flash *Flash
+}
+
+// Flash is a render-time alert: Color is "success" or "error".
+type Flash struct {
+	Color   string
+	Message string
+}
+
+// ChartView carries pre-rendered chart SVG strings from templ-charts.
+type ChartView struct {
+	ProgressSVG string
+	WeekSVG     string
+}
+
+// head emits the shared <head> contents.
+templ head() {
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<link rel="stylesheet" href="/assets/styles.css"/>
+	<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚣%3C/text%3E%3C/svg%3E"/>
+	@interact.ScriptTag()
+}
+
+// base renders the full HTML document around content via jughead's AppShell.
+// The sidebar starts closed so mobile is the default layout; the navbar
+// toggle re-opens it on desktop.
+templ base(title string, p Page, content templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en" data-theme="light">
+		<head>
+			<title>{ title } · Rowing Miles</title>
+			@head()
+		</head>
+		<body class="bg-base-200">
+			@containers.AppShell(containers.AppShellConfig{
+				Title:     "🚣 Rowing Miles",
+				TitleHref: "/",
+				Theme: containers.ThemeConfig{
+					LightTheme: "light",
+					DarkTheme:  "dark",
+					StorageKey: "track-theme",
+				},
+				Content: content,
+				NavItems: []daisyui.NavItem{ {Label: p.User, Href: "#"}, {Label: "Sign out", Href: "/logout"} },
+				MenuItems: []daisyui.MenuItem{
+					{Label: "Dashboard", Href: "/", Active: title == "Dashboard"},
+					{Label: "History", Href: "/history", Active: title == "History"},
+				},
+				SidebarState: containers.SidebarClosed,
+			})
+		</body>
+	</html>
+}
+
+// flash renders the one-shot alert when set.
+templ flash(p Page) {
+	if p.Flash != nil {
+		@daisyui.Alert(daisyui.AlertConfig{Message: p.Flash.Message, Color: p.Flash.Color})
+	}
+}
+
+// dock renders the fixed bottom navigation for small screens.
+templ dock(active string) {
+	<div class="md:hidden sticky bottom-0 z-50">
+		@daisyui.Dock(daisyui.DockConfig{
+			Items: []daisyui.DockItem{
+				{Label: "Home", Href: "/", Active: active == "Dashboard"},
+				{Label: "Log", Href: "/checkin", Active: active == "Check in"},
+				{Label: "History", Href: "/history", Active: active == "History"},
+			},
+		})
+	</div>
+}

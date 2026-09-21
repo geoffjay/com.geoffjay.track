@@ -1,0 +1,22 @@
+# Binaries
+/track
+/cmd/track/track
+
+# Local data
+/data/
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Node
+node_modules/
+/static/
+package-lock.json
+
+# Env
+.env
+.envrc.local
+
+# OS
+.DS_Store

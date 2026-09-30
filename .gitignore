@@ -20,3 +20,6 @@ package-lock.json
 
 # OS
 .DS_Store
+
+# Notes
+docs/notes.md

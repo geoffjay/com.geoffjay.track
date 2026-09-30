@@ -1,7 +1,7 @@
-# Rowing Miles
+# Tracking App
 
-A tiny two-player rowing-machine mileage tracker. Geoff vs. Misty: most
-cumulative miles wins bragging rights.
+A personal API and mobile app for tracking health and fitness, not intended to
+be used by anyone other than me.
 
 ## Stack
 
@@ -24,11 +24,6 @@ templ generate ./... # regenerate *_templ.go after editing .templ files
 go run ./cmd/track   # http://localhost:8080
 ```
 
-Log in with `geoff` / `geoff-row` or `misty` / `misty-row`
-(override via `TRACK_GEOFF_PW` / `TRACK_MISTY_PW`; on Fly use
-`fly secrets set TRACK_GEOFF_PW=... TRACK_MISTY_PW=...` then redeploy so
-the seeds run — note seeds only apply when a user row is missing).
-
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -37,8 +32,6 @@ the seeds run — note seeds only apply when a user row is missing).
 | `TRACK_DB_PATH` | `data/track.db` | SQLite file |
 | `TRACK_ENV` | `development` | `production` → gin release mode |
 | `TRACK_REALM` | `rowing miles` | Basic auth realm |
-| `TRACK_GEOFF_PW` | `geoff-row` | Seed password for geoff |
-| `TRACK_MISTY_PW` | `misty-row` | Seed password for misty |
 | `TRACK_PASSWORD_COST` | `10` | bcrypt cost for seeding |
 
 ## Tests
@@ -56,8 +49,6 @@ cross-user delete rejection), history, static, and health routes.
 ```sh
 fly launch --no-deploy   # first time: links app, creates the volume
 fly deploy
-fly secrets set TRACK_GEOFF_PW=... TRACK_MISTY_PW=...
-fly deploy               # restart so new secrets are present at seed time
 ```
 
 `fly.toml` mounts a 1GB volume at `/data` and runs the smallest machine

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"com.geoffjay.track/internal/api"
 	"com.geoffjay.track/internal/auth"
 	"com.geoffjay.track/internal/config"
 	"com.geoffjay.track/internal/db"
@@ -78,7 +79,7 @@ func TestSmoke(t *testing.T) {
 	}
 
 	cfg := config.Config{Port: 18099, Realm: "smoke", Env: "development"}
-	srv := web.New(cfg, authStore, tracker, nil)
+	srv := web.New(cfg, authStore, auth.NewTokenStore(dbh), tracker, api.NewHandlers(dbh))
 	ts := httptest.NewServer(srv.Router())
 	defer ts.Close()
 

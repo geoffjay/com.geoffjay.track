@@ -25,14 +25,15 @@ var Users = []string{"geoff", "misty"}
 type Server struct {
 	cfg     config.Config
 	auth    *auth.Store
+	tokens  *auth.TokenStore
 	tracker *track.Store
 	api     *api.Handlers
 }
 
 // New builds the Server and the gin engine. apiHandlers may be nil for tests
 // that only exercise the UI.
-func New(cfg config.Config, authStore *auth.Store, tracker *track.Store, apiHandlers *api.Handlers) *Server {
-	return &Server{cfg: cfg, auth: authStore, tracker: tracker, api: apiHandlers}
+func New(cfg config.Config, authStore *auth.Store, tokens *auth.TokenStore, tracker *track.Store, apiHandlers *api.Handlers) *Server {
+	return &Server{cfg: cfg, auth: authStore, tokens: tokens, tracker: tracker, api: apiHandlers}
 }
 
 // Router builds the gin engine with all routes and middleware.
@@ -50,7 +51,6 @@ func (s *Server) Router() *gin.Engine {
 		c.Data(http.StatusOK, "text/css; charset=utf-8", stylesCSS)
 	})
 	r.GET("/healthz", func(c *gin.Context) { c.Status(http.StatusOK) })
-
 	authed := r.Group("/", middleware.BasicAuth(s.auth, s.cfg.Realm))
 	{
 		authed.GET("/", s.dashboard)
@@ -58,11 +58,17 @@ func (s *Server) Router() *gin.Engine {
 		authed.POST("/checkin", s.checkinCreate)
 		authed.GET("/history", s.history)
 		authed.POST("/checkins/:id/delete", s.checkinDelete)
+
+		// Settings: API token management (basic auth only — the UI itself
+		// is never token-authenticated).
+		authed.GET("/settings", s.settings)
+		authed.POST("/settings/tokens", s.tokenCreate)
+		authed.POST("/settings/tokens/:id/delete", s.tokenDelete)
 	}
 
-	// Versioned JSON API for mobile clients, sharing the same basic auth.
+	// Versioned JSON API for mobile clients: bearer token or basic auth.
 	if s.api != nil {
-		api.Register(r.Group("/api/v1", middleware.BasicAuth(s.auth, s.cfg.Realm)), s.api)
+		api.Register(r.Group("/api/v1", middleware.APIAuth(s.auth, s.tokens, s.cfg.Realm)), s.api)
 	}
 
 	return r

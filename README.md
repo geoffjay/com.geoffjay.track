@@ -11,8 +11,8 @@ be used by anyone other than me.
   (AppShell container + component library)
 - **Charts** via [templ-charts](https://github.com/geoffjay/templ-charts)
   (server-side SVG line + bar)
-- HTTP **basic auth** (bcrypt-hashed, two seeded users) — shared by the web UI
-  and the JSON API
+- HTTP **basic auth** for the web UI + **bearer API tokens** for `/api/v1`
+  (tokens created/revoked on the Settings page; bcrypt-hashed passwords)
 - Deployed to **fly.io** with auto-stop (idle machine stops; requests
   cold-start it in ~1s)
 
@@ -55,6 +55,10 @@ go test ./...
   metrics/measurements CRUD, the error contract (400 field-scoped
   validation, 403 system rows, 404 not found/cross-user, 409 conflicts),
   and cross-user isolation.
+- `internal/web/tokens_test.go` covers the Settings page and bearer
+  tokens end-to-end: form create (one-time secret display), bearer
+  auth on `/api/v1`, basic auth still working, bearer rejected on the
+  UI, garbage-token rejection, expiry validation, and revocation.
 
 ## Deploy to Fly
 
@@ -69,11 +73,13 @@ fly deploy               # restart so new secrets are present at seed time
 (256MB shared-1x) with `auto_stop_machines = "stop"`. With near-zero traffic
 the cost is the volume (~$0.15/mo) plus seconds of machine time per visit.
 
-## Data model
-
 ```sql
 -- Original rowing tracker (still in use by the web UI).
 users(id, username UNIQUE, password_hash, created_at)
+api_tokens(id, user_id -> users.id, name, token_hash UNIQUE, expires_at?,
+           last_used_at?, created_at)
+  -- bearer tokens for /api/v1; hash is SHA-256 of the raw value; the raw
+  -- value is shown exactly once at creation; expires_at NULL = never
 checkins(id, user_id -> users.id, miles CHECK(miles > 0), rowed_at, created_at)
 
 -- Health & fitness (served by the JSON API).
@@ -105,8 +111,19 @@ workout_entries(id, workout_id -> workouts.id, exercise_id -> exercises.id,
 
 ## JSON API (v1)
 
-All endpoints live under `/api/v1` and use the same HTTP basic auth as the web
-UI. Requests and responses are JSON. List endpoints accept `from`, `to`
+All endpoints live under `/api/v1`. Authentication is either HTTP basic auth
+(the same credentials as the web UI) or an API token:
+
+```
+Authorization: Bearer <token>
+```
+
+Tokens are created and revoked on the **Settings** page (`/settings`) — give
+each one a name and an optional expiration date (empty = never expires). The
+raw token is shown exactly once at creation; only its SHA-256 hash is stored.
+Revoking a token immediately disables it.
+
+Requests and responses are JSON. List endpoints accept `from`, `to`
 (RFC3339 or `YYYY-MM-DD`) and `limit` (default 50, max 200) query parameters
 and return `{"data": [...]}`; single-object endpoints return the bare object.
 

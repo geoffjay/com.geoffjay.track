@@ -1,0 +1,133 @@
+package views
+
+import (
+	"fmt"
+	"time"
+
+	"com.geoffjay.track/internal/auth"
+
+	"github.com/geoffjay/templ-ui/daisyui"
+)
+
+// fmtTokenDate renders a token timestamp; nil renders "—".
+func fmtTokenDate(t *time.Time) string {
+	if t == nil {
+		return "—"
+	}
+	return t.Format("Jan 2, 2006")
+}
+
+// fmtTokenLastUsed renders the last-used stamp for the token table.
+func fmtTokenLastUsed(t *time.Time) string {
+	if t == nil {
+		return "Never"
+	}
+	return t.Format("Jan 2, 3:04pm")
+}
+// Settings is the user settings page: API token management.
+templ Settings(p Page, tokens []auth.Token) {
+	@base("Settings", p, settingsContent(p, tokens, nil, ""))
+}
+
+// SettingsWithSecret renders the settings page right after a token was
+// created, showing the raw token exactly once.
+templ SettingsWithSecret(p Page, tokens []auth.Token, tok auth.Token, raw string) {
+	@base("Settings", p, settingsContent(p, tokens, &tok, raw))
+}
+
+// settingsContent is the Settings body; secret is nil unless a token was
+// just created (then raw holds the one-time display value).
+templ settingsContent(p Page, tokens []auth.Token, secret *auth.Token, raw string) {
+	<div class="p-4 max-w-2xl mx-auto pb-24">
+		@flash(p)
+		<h1 class="text-2xl font-bold mb-4">Settings</h1>
+
+		if secret != nil {
+			<div class="card bg-base-100 shadow-sm mb-4 border border-primary">
+				<div class="card-body p-4">
+					<h2 class="card-title text-lg">{ secret.Name }</h2>
+					<p class="text-sm opacity-70">Copy this token now. It will not be shown again.</p>
+					<div class="mockup-code text-xs">
+						<pre><code>{ raw }</code></pre>
+					</div>
+					<p class="text-xs opacity-60">
+						Use it as: <code>Authorization: Bearer &lt;token&gt;</code>
+					</p>
+				</div>
+			</div>
+		}
+
+		<div class="card bg-base-100 shadow-sm">
+			<div class="card-body p-4 gap-3">
+				<h2 class="card-title text-lg">API tokens</h2>
+				<p class="text-sm opacity-70">
+					Tokens authenticate the JSON API (<code>/api/v1</code>) via the
+					<code>Authorization: Bearer</code> header. The web UI always uses your
+					password.
+				</p>
+				@daisyui.Table(daisyui.TableConfig{
+					Headers: []daisyui.TableCell{{Text: "Name"}, {Text: "Expires"}, {Text: "Last used"}, {Text: ""}},
+					Rows:    tokenRows(tokens),
+					Size:    "sm",
+					Wrap:    true,
+				})
+			</div>
+		</div>
+
+		<div class="card bg-base-100 shadow-sm mt-4">
+			<div class="card-body p-4 gap-3">
+				<h2 class="card-title text-lg">Create token</h2>
+				<form method="POST" action="/settings/tokens" class="flex flex-col gap-3">
+					<label class="form-control">
+						<div class="label"><span class="label-text">Name</span></div>
+						<input
+							type="text"
+							name="name"
+							placeholder="e.g. phone app"
+							maxlength="64"
+							class="input input-bordered w-full"
+						/>
+					</label>
+					<label class="form-control">
+						<input
+							type="date"
+							name="expires_at"
+							class="input input-bordered w-full"
+						/>
+						<div class="label"><span class="label-text-alt">Empty = never expires</span></div>
+					</label>
+					@daisyui.Button(daisyui.ButtonConfig{Label: "Create token", Color: "primary", Type: "submit", Class: "w-full"})
+				</form>
+			</div>
+		</div>
+	@dock("Settings")
+	</div>
+}
+
+// tokenRows builds the token table; each row carries a revoke form button.
+func tokenRows(tokens []auth.Token) []daisyui.TableRow {
+	rows := make([]daisyui.TableRow, 0, len(tokens))
+	for _, t := range tokens {
+		rows = append(rows, daisyui.TableRow{Cells: []daisyui.TableCell{
+			{Text: t.Name},
+			{Text: fmtTokenDate(t.ExpiresAt)},
+			{Text: fmtTokenLastUsed(t.LastUsedAt)},
+			{HTML: revokeButton(t.ID)},
+		}})
+	}
+	if len(rows) == 0 {
+		rows = append(rows, daisyui.TableRow{Cells: []daisyui.TableCell{
+			{Text: "No tokens yet"}, {Text: ""}, {Text: ""}, {Text: ""},
+		}})
+	}
+	return rows
+}
+
+// revokeButton renders the inline revoke form for one token.
+templ revokeButton(id int64) {
+	<form method="POST" action={ templ.URL(fmt.Sprintf("/settings/tokens/%d/delete", id)) } class="inline">
+		@daisyui.Button(daisyui.ButtonConfig{
+			Label: "Revoke", Style: "ghost", Color: "error", Size: "xs", Type: "submit",
+		})
+	</form>
+}

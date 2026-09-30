@@ -54,16 +54,17 @@ templ base(title string, p Page, content templ.Component) {
 					DarkTheme:  "dark",
 					StorageKey: "track-theme",
 				},
-				Content: content,
-				MenuItems: []daisyui.MenuItem{
-					{Label: "Dashboard", Href: "/", Active: title == "Dashboard"},
-					{Label: "History", Href: "/history", Active: title == "History"},
-				},
-				NavSections: []containers.NavSection{
-					{Title: p.User, Items: []daisyui.MenuItem{
-						{Label: "Sign out", Href: "/logout"},
-					}},
-				},
+			Content: content,
+			MenuItems: []daisyui.MenuItem{
+				{Label: "Dashboard", Href: "/", Active: title == "Dashboard"},
+				{Label: "History", Href: "/history", Active: title == "History"},
+				{Label: "Settings", Href: "/settings", Active: title == "Settings"},
+			},
+			NavSections: []containers.NavSection{
+				{Title: p.User, Items: []daisyui.MenuItem{
+					{Label: "Sign out", Href: "/logout"},
+				}},
+			},
 				SidebarState: containers.SidebarClosed,
 			})
 		</body>
@@ -85,6 +86,7 @@ templ dock(active string) {
 				{Label: "Home", Href: "/", Active: active == "Dashboard", Icon: phosphor.House(phosphor.Props{Size: "22"})},
 				{Label: "Log", Href: "/checkin", Active: active == "Check in", Icon: phosphor.Plus(phosphor.Props{Size: "22"})},
 				{Label: "History", Href: "/history", Active: active == "History", Icon: phosphor.ChartLineUp(phosphor.Props{Size: "22"})},
+				{Label: "Settings", Href: "/settings", Active: active == "Settings", Icon: phosphor.Gear(phosphor.Props{Size: "22"})},
 			},
 		})
 	</div>

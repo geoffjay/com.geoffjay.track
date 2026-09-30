@@ -131,6 +131,7 @@ func base(title string, p Page, content templ.Component) templ.Component {
 			MenuItems: []daisyui.MenuItem{
 				{Label: "Dashboard", Href: "/", Active: title == "Dashboard"},
 				{Label: "History", Href: "/history", Active: title == "History"},
+				{Label: "Settings", Href: "/settings", Active: title == "Settings"},
 			},
 			NavSections: []containers.NavSection{
 				{Title: p.User, Items: []daisyui.MenuItem{
@@ -213,6 +214,7 @@ func dock(active string) templ.Component {
 				{Label: "Home", Href: "/", Active: active == "Dashboard", Icon: phosphor.House(phosphor.Props{Size: "22"})},
 				{Label: "Log", Href: "/checkin", Active: active == "Check in", Icon: phosphor.Plus(phosphor.Props{Size: "22"})},
 				{Label: "History", Href: "/history", Active: active == "History", Icon: phosphor.ChartLineUp(phosphor.Props{Size: "22"})},
+				{Label: "Settings", Href: "/settings", Active: active == "Settings", Icon: phosphor.Gear(phosphor.Props{Size: "22"})},
 			},
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

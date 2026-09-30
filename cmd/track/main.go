@@ -57,7 +57,7 @@ func run() error {
 	}
 
 	tracker := track.NewStore(dbh)
-	srv := web.New(cfg, authStore, tracker, api.NewHandlers(dbh))
+	srv := web.New(cfg, authStore, auth.NewTokenStore(dbh), tracker, api.NewHandlers(dbh))
 
 	httpSrv := &http.Server{
 		Addr:    ":" + strconv.Itoa(cfg.Port),

@@ -7,7 +7,7 @@ cumulative miles wins bragging rights.
 
 - **Go + gin + [templ](https://templ.guide)** — single binary serving the UI
 - **SQLite** (`modernc.org/sqlite`, pure Go — no CGO) persisted to a Fly volume
-- **daisyUI 5** components via [jughead](https://github.com/geoffjay/jughead)
+- **daisyUI 5** components via [templ-ui](https://github.com/geoffjay/templ-ui)
   (AppShell container + component library)
 - **Charts** via [templ-charts](https://github.com/geoffjay/templ-charts)
   (server-side SVG line + bar)

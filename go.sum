@@ -15,10 +15,10 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/gabriel-vasile/mimetype v1.4.12 h1:e9hWvmLYvtp846tLHam2o++qitpguFiYCKbn0w9jyqw=
 github.com/gabriel-vasile/mimetype v1.4.12/go.mod h1:d+9Oxyo1wTzWdyVUPMmXFvp4F9tea18J8ufA774AB3s=
-github.com/geoffjay/jughead v0.1.2 h1:lvQZIy1/d0A2IpCG3mRj2ZpXsfftRgOFrfupXW+EKUc=
-github.com/geoffjay/jughead v0.1.2/go.mod h1:j5wcznMVf0ZHfQkqkwGoRD/TQVC43DVebeaFWqf6FwQ=
 github.com/geoffjay/templ-charts v1.0.1 h1:O0VZytM65a+eG8fngQ33CEr9VpWgClltGWxUGBWphQk=
 github.com/geoffjay/templ-charts v1.0.1/go.mod h1:zNuJWcsDydKYYR5zBAM0gp30CKoRKoz8K3SqnoYGsX8=
+github.com/geoffjay/templ-ui v0.0.0-20260927202450-880c70597a2d h1:tsHKN5fhbssPrJqvJ7ySb9s5tdiMmH7Jvx78FVDcqHQ=
+github.com/geoffjay/templ-ui v0.0.0-20260927202450-880c70597a2d/go.mod h1:FnSWs7ozL1Me10lC+SYZ0Y5AerU+KHCa+tR7RgdHqNA=
 github.com/gin-contrib/sse v1.1.0 h1:n0w2GMuUpWDVp7qSpvze6fAu9iRxJY4Hmj6AmBOU05w=
 github.com/gin-contrib/sse v1.1.0/go.mod h1:hxRZ5gVpWMT7Z0B0gSNYqqsSCNIJMjzvm6fqCz9vjwM=
 github.com/gin-gonic/gin v1.12.0 h1:b3YAbrZtnf8N//yjKeU2+MQsh2mY5htkZidOM7O0wG8=

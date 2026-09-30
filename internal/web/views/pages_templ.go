@@ -14,7 +14,7 @@ import (
 
 	"com.geoffjay.track/internal/track"
 
-	"github.com/geoffjay/jughead/templates/components/daisyui"
+	"github.com/geoffjay/templ-ui/daisyui"
 )
 
 // fmtMiles renders miles with up to one decimal, trailing zeros trimmed.

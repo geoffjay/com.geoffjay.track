@@ -11,9 +11,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/geoffjay/jughead/templates/components/daisyui"
-	"github.com/geoffjay/jughead/templates/containers"
 	"github.com/geoffjay/templ-charts/charts/interact"
+	"github.com/geoffjay/templ-ui/containers"
+	"github.com/geoffjay/templ-ui/daisyui"
 	"github.com/iota-uz/icons/phosphor"
 )
 
@@ -69,7 +69,7 @@ func head() templ.Component {
 	})
 }
 
-// base renders the full HTML document around content via jughead's AppShell.
+// base renders the full HTML document around content via templ-ui's AppShell.
 // The navbar holds only the brand and theme toggle; nav links live in the
 // sidebar (hamburger) and the mobile dock, so the navbar never wraps on a
 // 390px screen.

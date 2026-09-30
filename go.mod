@@ -4,9 +4,10 @@ go 1.27.1
 
 require (
 	github.com/a-h/templ v0.3.1020
-	github.com/geoffjay/jughead v0.1.2
 	github.com/geoffjay/templ-charts v1.0.1
+	github.com/geoffjay/templ-ui v0.0.0-20260927202450-880c70597a2d
 	github.com/gin-gonic/gin v1.12.0
+	github.com/iota-uz/icons v0.0.3
 	golang.org/x/crypto v0.57.0
 	modernc.org/sqlite v1.59.0
 )
@@ -25,7 +26,6 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/iota-uz/icons v0.0.3 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect

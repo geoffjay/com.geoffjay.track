@@ -1,33 +1,9 @@
 @import "tailwindcss";
-@import "./jughead-sources.css";
+@import "./templ-ui-sources.css";
+@import "./vendor/templ-ui/safelist.css";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark;
 }
-
-/* Safelist classes that never appear as literals in any scanned file.
- *
- * Tailwind v4 emits daisyUI component classes only when it sees the class
- * name somewhere it scans. jughead builds most of these names at runtime in
- * Go helpers (e.g. classFor("btn", cfg.Color) -> "btn-primary"), so the
- * composed names exist nowhere as text. The @source scan of jughead's module
- * directory covers everything that appears literally; this inline list pins
- * the rest — exactly the ones this app's templates request.
- */
-@source inline("{btn,badge,alert}-{primary,secondary,accent,info,success,warning,error,neutral}");
-@source inline("{btn,badge,alert,select,input}-{xs,sm,lg,xl}");
-@source inline("{btn}-{ghost,outline,dash,soft,link,active,disabled,block,wide}");
-@source inline("{badge,alert}-{outline,dash,soft,ghost}");
-@source inline("{btn,badge,alert}-{outline,dash,soft,ghost}");
-@source inline("table-{xs,sm,lg,xl,zebra}");
-@source inline("{stats,stat,stat-title,stat-value,stat-desc,stat-figure,stat-actions,stats-vertical,stats-horizontal}");
-@source inline("{menu,menu-vertical,menu-horizontal,menu-title,menu-active,menu-disabled,menu-xs,menu-sm,menu-lg,menu-xl}");
-@source inline("{navbar,navbar-start,navbar-center,navbar-end}");
-@source inline("{swap,swap-rotate,swap-on,swap-off,swap-active}");
-@source inline("{card,card-body,card-title,card-actions,card-border,card-side}");
-@source inline("{dock,dock-active,dock-label,dock-xs,dock-sm,dock-lg,dock-xl}");
-@source inline("{theme-controller}");
-@source inline("{input,select,textarea}-{primary,secondary,accent,info,success,warning,error,neutral}");
-
 /* Rowing Miles custom styles */
 
 :root {

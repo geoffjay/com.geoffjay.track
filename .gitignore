@@ -9,7 +9,7 @@
 *.db-wal
 *.log
 
-# Node
+assets/vendor/
 node_modules/
 /static/
 package-lock.json

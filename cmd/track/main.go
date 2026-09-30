@@ -10,9 +10,11 @@ import (
 	"strconv"
 	"syscall"
 
+	"com.geoffjay.track/internal/api"
 	"com.geoffjay.track/internal/auth"
 	"com.geoffjay.track/internal/config"
 	"com.geoffjay.track/internal/db"
+	"com.geoffjay.track/internal/seedpop"
 	"com.geoffjay.track/internal/track"
 	"com.geoffjay.track/internal/web"
 )
@@ -39,7 +41,6 @@ func run() error {
 	defer dbh.Close()
 
 	// Seed the two predefined users. Passwords come from the environment so
-	// they never live in source; geoff/misty defaults cover local dev.
 	authStore := auth.NewStore(dbh)
 	seed := []auth.User{
 		{Username: "geoff", PasswordHash: envOr("TRACK_GEOFF_PW", "geoff-row")},
@@ -49,8 +50,14 @@ func run() error {
 		return err
 	}
 
+	// Seed the fitness reference catalogs (metrics, exercises, foods).
+	// Idempotent: existing rows are left alone.
+	if err := seedpop.Ensure(context.Background(), dbh); err != nil {
+		return err
+	}
+
 	tracker := track.NewStore(dbh)
-	srv := web.New(cfg, authStore, tracker)
+	srv := web.New(cfg, authStore, tracker, api.NewHandlers(dbh))
 
 	httpSrv := &http.Server{
 		Addr:    ":" + strconv.Itoa(cfg.Port),

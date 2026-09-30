@@ -78,7 +78,7 @@ func TestSmoke(t *testing.T) {
 	}
 
 	cfg := config.Config{Port: 18099, Realm: "smoke", Env: "development"}
-	srv := web.New(cfg, authStore, tracker)
+	srv := web.New(cfg, authStore, tracker, nil)
 	ts := httptest.NewServer(srv.Router())
 	defer ts.Close()
 

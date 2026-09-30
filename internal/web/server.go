@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"com.geoffjay.track/internal/api"
 	"com.geoffjay.track/internal/auth"
 	"com.geoffjay.track/internal/config"
 	"com.geoffjay.track/internal/middleware"
 	"com.geoffjay.track/internal/track"
 	"com.geoffjay.track/internal/web/views"
-
 	"github.com/a-h/templ"
 	"github.com/gin-gonic/gin"
 )
@@ -26,11 +26,13 @@ type Server struct {
 	cfg     config.Config
 	auth    *auth.Store
 	tracker *track.Store
+	api     *api.Handlers
 }
 
-// New builds the Server and the gin engine.
-func New(cfg config.Config, authStore *auth.Store, tracker *track.Store) *Server {
-	return &Server{cfg: cfg, auth: authStore, tracker: tracker}
+// New builds the Server and the gin engine. apiHandlers may be nil for tests
+// that only exercise the UI.
+func New(cfg config.Config, authStore *auth.Store, tracker *track.Store, apiHandlers *api.Handlers) *Server {
+	return &Server{cfg: cfg, auth: authStore, tracker: tracker, api: apiHandlers}
 }
 
 // Router builds the gin engine with all routes and middleware.
@@ -58,13 +60,10 @@ func (s *Server) Router() *gin.Engine {
 		authed.POST("/checkins/:id/delete", s.checkinDelete)
 	}
 
-	// Basic auth does not have a server-side "sign out" (the browser keeps
-	// the credentials until closed); /logout answers 401 so the browser
-	// re-prompts, which is the standard trick for basic-auth sign-out.
-	r.GET("/logout", func(c *gin.Context) {
-		c.Header("WWW-Authenticate", `Basic realm="`+s.cfg.Realm+`", charset="UTF-8"`)
-		c.AbortWithStatus(http.StatusUnauthorized)
-	})
+	// Versioned JSON API for mobile clients, sharing the same basic auth.
+	if s.api != nil {
+		api.Register(r.Group("/api/v1", middleware.BasicAuth(s.auth, s.cfg.Realm)), s.api)
+	}
 
 	return r
 }

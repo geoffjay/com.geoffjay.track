@@ -11,8 +11,9 @@ be used by anyone other than me.
   (AppShell container + component library)
 - **Charts** via [templ-charts](https://github.com/geoffjay/templ-charts)
   (server-side SVG line + bar)
-- HTTP **basic auth** for the web UI + **bearer API tokens** for `/api/v1`
-  (tokens created/revoked on the Settings page; bcrypt-hashed passwords)
+- **Mobile app** ([app/](app/README.md)) — Flutter (Android-first, iOS
+  supported) client for `/api/v1`, authenticating with a single stored
+  API token
 - Deployed to **fly.io** with auto-stop (idle machine stops; requests
   cold-start it in ~1s)
 

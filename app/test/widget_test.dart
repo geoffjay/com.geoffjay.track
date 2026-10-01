@@ -1,30 +1,49 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:tracking/main.dart';
+import 'package:tracking/src/app_state.dart';
+
+Future<AppState> _freshState(Map<String, Object> values) async {
+  SharedPreferences.setMockInitialValues(values);
+  return AppState(await SharedPreferences.getInstance());
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('no stored token shows the login gate',
+      (WidgetTester tester) async {
+    final state = await _freshState({});
+    await tester.pumpWidget(TrackApp(state: state));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Connect'), findsOneWidget);
+    expect(find.text('Server URL'), findsOneWidget);
+    expect(find.text('API token'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('empty token is rejected with a validation message',
+      (WidgetTester tester) async {
+    final state = await _freshState({});
+    await tester.pumpWidget(TrackApp(state: state));
+
+    await tester.tap(find.text('Connect'));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // The URL field is pre-seeded with the default server, so only the
+    // empty-token validator fires; the gate stays up.
+    expect(find.text('Enter the token'), findsOneWidget);
+  });
+
+  testWidgets('stored token goes straight to the main UI',
+      (WidgetTester tester) async {
+    final state = await _freshState({
+      'api_token': 'test-token',
+      'base_url': 'https://example.invalid',
+    });
+    await tester.pumpWidget(TrackApp(state: state));
+
+    expect(find.text('Measure'), findsOneWidget);
+    expect(find.text('Meals'), findsOneWidget);
+    expect(find.text('Fasts'), findsOneWidget);
+    expect(find.text('Workouts'), findsOneWidget);
   });
 }
